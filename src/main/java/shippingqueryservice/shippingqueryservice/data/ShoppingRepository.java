@@ -10,7 +10,10 @@ import java.util.List;
 @Repository
 public interface ShoppingRepository extends MongoRepository<ShoppingCartData, String> {
     List<ShoppingCartData> findByCustomerId(String customerId);
+    List<ShoppingCartData> findByCartNumber(String cartNumber);
 
     @Query("{'$or':[ {'customerId':?0}, {'cartNumber':?1} ] }")
     List<ShoppingCartData> findByCustomerIdAndCartNumber(String customerId, String cartNumber);
+
+    void deleteByCartNumber(String cartNumber);
 }

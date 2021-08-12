@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import shippingqueryservice.shippingqueryservice.data.ShoppingRepository;
 import shippingqueryservice.shippingqueryservice.domain.*;
+import shippingqueryservice.shippingqueryservice.integration.KafkaSender;
 import shippingqueryservice.shippingqueryservice.service.dtos.ShoppingCartDTO;
 import shippingqueryservice.shippingqueryservice.service.dtos.ShoppingCartsDTO;
 
@@ -21,6 +22,9 @@ public class ShoppingCartService {
     @Autowired
     private ShoppingDomainService domainService;
 
+    @Autowired
+    private KafkaSender sender;
+
     public ShoppingCartsDTO findByCustomerId(String customerId) {
         List<ShoppingCartData> carts = repository.findByCustomerId(customerId);
 
@@ -32,6 +36,13 @@ public class ShoppingCartService {
         ShoppingCartsDTO cartsDTO = new ShoppingCartsDTO();
         cartsDTO.setCarts(dtos);
         return cartsDTO;
+    }
+
+    public ShoppingCartData findByCartNumber(String cartNumber) {
+        List<ShoppingCartData> carts = repository.findByCartNumber(cartNumber);
+        if (carts == null && carts.size() == 0) return null;
+
+        return carts.get(0);
     }
 
     public void addToCart(ProductAddedEvent event) {
@@ -73,5 +84,14 @@ public class ShoppingCartService {
         ShoppingCartData cart = domainService.removeFromCart(carts.get(0), event);
         // TODO log removing product from cart
         repository.save(cart);
+    }
+
+    public void checkoutCart(String cartNumber, String customerId) {
+        repository.deleteByCartNumber(cartNumber);
+        CheckoutEvent event = new CheckoutEvent(customerId, cartNumber);
+
+        // send kafka message
+        CheckoutEvent checkoutEvent = new CheckoutEvent(event.getCustomerId(), event.getCartNumber());
+        sender.sendCartCheckout("cart-checkout", checkoutEvent);
     }
 }

@@ -6,9 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import org.springframework.kafka.annotation.KafkaListener;
-import shippingqueryservice.shippingqueryservice.domain.ProductAddedEvent;
-import shippingqueryservice.shippingqueryservice.domain.ProductRemovedEvent;
-import shippingqueryservice.shippingqueryservice.domain.ProductUpdatedEvent;
+import shippingqueryservice.shippingqueryservice.domain.*;
+import shippingqueryservice.shippingqueryservice.service.CustomLoggerService;
 import shippingqueryservice.shippingqueryservice.service.ShoppingCartService;
 
 @Service
@@ -16,9 +15,13 @@ public class KafkaReceiver {
     @Autowired
     private ShoppingCartService service;
 
+    @Autowired
+    private CustomLoggerService loggerService;
+
     @KafkaListener(topics = {"product-added"})
     public void receiveAdd(@Payload String message) {
         System.out.println("Receiver received product added message = " + message);
+        loggerService.log("Receiver received product added message = " + message);
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             ProductAddedEvent event = objectMapper.readValue(message, ProductAddedEvent.class);
@@ -31,6 +34,8 @@ public class KafkaReceiver {
     @KafkaListener(topics = {"product-updated"})
     public void receiveUpdate(@Payload String message) {
         System.out.println("Receiver received product updated message = "+ message);
+        loggerService.log("Receiver received product updated message = " + message);
+
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             ProductUpdatedEvent event = objectMapper.readValue(message, ProductUpdatedEvent.class);
@@ -43,6 +48,8 @@ public class KafkaReceiver {
     @KafkaListener(topics = {"product-removed"})
     public void receiveRemove(@Payload String message) {
         System.out.println("Receiver received product removed message = "+ message);
+        loggerService.log("Receiver received product removed message = " + message);
+
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             ProductRemovedEvent event = objectMapper.readValue(message, ProductRemovedEvent.class);

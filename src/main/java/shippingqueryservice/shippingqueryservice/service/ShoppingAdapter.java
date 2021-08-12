@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import shippingqueryservice.shippingqueryservice.domain.CartLine;
 import shippingqueryservice.shippingqueryservice.domain.ShoppingCartData;
 import shippingqueryservice.shippingqueryservice.service.dtos.CartLineDTO;
+import shippingqueryservice.shippingqueryservice.service.dtos.OrderCreateDTO;
+import shippingqueryservice.shippingqueryservice.service.dtos.OrderLineDTO;
 import shippingqueryservice.shippingqueryservice.service.dtos.ShoppingCartDTO;
 
 import java.util.ArrayList;
@@ -20,6 +22,21 @@ public class ShoppingAdapter {
 
         dto.setCartLines(cartLineDTOS);
         return dto;
+    }
+
+    public OrderCreateDTO getOrderCreateDTOFromCart(ShoppingCartData cart) {
+        OrderCreateDTO dto = new OrderCreateDTO();
+        List<OrderLineDTO> orderLineDTOs = new ArrayList<OrderLineDTO>();
+        for (CartLine line: cart.getCartLines()) {
+            orderLineDTOs.add(this.getOrderLineDTOFromCartLine(line));
+        }
+
+        dto.setOrderLines(orderLineDTOs);
+        return dto;
+    }
+
+    private OrderLineDTO getOrderLineDTOFromCartLine(CartLine line) {
+        return new OrderLineDTO(line.getProductNumber(), line.getQuantity());
     }
 
     private CartLineDTO getDTOFromCartLine(CartLine cartLine) {
